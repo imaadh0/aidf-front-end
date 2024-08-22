@@ -10,31 +10,35 @@ import { Navigate, useParams } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 
 const getJob = async (id) => {
-
   const token = await window.Clerk.session.getToken();
 
-  const res = await fetch(`http://localhost:8000/jobs/${id}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const res = await fetch(
+    `https://aidf-back-end-production-4ac8.up.railway.app/jobs/${id}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     }
-  });
+  );
   const job = await res.json();
   return job;
 };
 
 const createJob = async (jobApplication) => {
-
   const token = await window.Clerk.session.getToken();
 
-  const res = await fetch(`http://localhost:8000/jobApplications`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-    },
-    body: JSON.stringify(jobApplication),
-  });
+  const res = await fetch(
+    `https://aidf-back-end-production-4ac8.up.railway.app/jobApplications`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(jobApplication),
+    }
+  );
   const job = await res.json();
   return job;
 };
@@ -43,7 +47,7 @@ function JobPage() {
   const [job, setJob] = useState(null);
   const params = useParams();
 
-  const {isLoaded, isSignedIn, user} = useUser();
+  const { isLoaded, isSignedIn, user } = useUser();
 
   useEffect(() => {
     //Always runs the code when the component comes to the screen
@@ -75,13 +79,11 @@ function JobPage() {
   };
 
   if (!isLoaded) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   if (!isSignedIn) {
-    return (
-    <Navigate to="/sign-in"/>
-    );
+    return <Navigate to="/sign-in" />;
   }
 
   return (
