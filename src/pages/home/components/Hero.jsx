@@ -1,8 +1,8 @@
 function Hero() {
   return (
-    <section className="hero">
+    <section className="py-32 flex justify-center items-center rounded-xl shadow-sm shadow-gray-900 border-white hero">
       <div>
-        <h2 className="text-white">Find your dream job</h2>
+        <h1 className="text-white">Find your dream job</h1>
       </div>
     </section>
   );
