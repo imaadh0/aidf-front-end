@@ -1,17 +1,16 @@
-import Navigation from "@/components/shared/Navigation";
-import { Briefcase, MapPin } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { useUser, useAuth } from "@clerk/clerk-react";
+import { Briefcase, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Navigate, useParams } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const getJob = async (id) => {
-  const token = await window.Clerk.session.getToken();
-
+const getJob = async (id, token) => {
   const res = await fetch(
     `https://aidf-back-end-production-4ac8.up.railway.app/jobs/${id}`,
     {
@@ -21,44 +20,84 @@ const getJob = async (id) => {
       },
     }
   );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch job details");
+  }
+
   const job = await res.json();
   return job;
 };
 
-const createJob = async (jobApplication) => {
-  const token = await window.Clerk.session.getToken();
+const createJob = async (jobApplication, token) => {
+  try {
+    const response = await fetch(
+      `https://aidf-back-end-production-4ac8.up.railway.app/jobApplications`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(jobApplication),
+      }
+    );
 
-  const res = await fetch(
-    `https://aidf-back-end-production-4ac8.up.railway.app/jobApplications`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(jobApplication),
+    if (!response.ok) {
+      throw new Error("Failed to create job application");
     }
-  );
-  const job = await res.json();
-  return job;
+
+    toast.success("Job application submitted successfully!", {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  } catch (error) {
+    toast.error("Error submitting job application. Please try again.", {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  }
 };
 
 function JobPage() {
   const [job, setJob] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const params = useParams();
 
   const { isLoaded, isSignedIn, user } = useUser();
+  const { getToken } = useAuth();
 
   useEffect(() => {
-    //Always runs the code when the component comes to the screen
-    getJob(params.id)
-      .then((data) => {
+    const fetchJob = async () => {
+      setLoading(true);
+      try {
+        const token = await getToken();
+        const data = await getJob(params.id, token);
         setJob(data);
-        console.log(data);
-      })
-      .catch((err) => {})
-      .finally(() => {});
-  }, [params]);
+        setError(null);
+      } catch (err) {
+        setError("Failed to fetch job details");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isLoaded) {
+      fetchJob();
+    }
+  }, [params.id, isLoaded, getToken]);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -67,23 +106,38 @@ function JobPage() {
     a3: "",
   });
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log(formData);
-    createJob({
-      fullName: formData.fullName,
-      answers: [formData.a1, formData.a2, formData.a3],
-      job: params.id,
-      userId: user.id,
-    });
+    try {
+      const token = await getToken();
+      await createJob(
+        {
+          fullName: formData.fullName,
+          answers: [formData.a1, formData.a2, formData.a3],
+          job: params.id,
+          userId: user.id,
+        },
+        token
+      );
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   if (!isLoaded) {
-    return <div>Loading...</div>;
+    return <div className="mt-3 animate-pulse">Loading...</div>;
   }
 
   if (!isSignedIn) {
     return <Navigate to="/sign-in" />;
+  }
+
+  if (loading) {
+    return <div className="mt-3 animate-pulse">Loading job details...</div>;
+  }
+
+  if (error) {
+    return <div className="mt-3 text-red-500">{error}</div>;
   }
 
   return (
@@ -109,8 +163,9 @@ function JobPage() {
 
       <form className="py-8 flex flex-col gap-y-8" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-y-4">
-          <Label>Full Name</Label>
+          <Label htmlFor="fullName">Full Name</Label>
           <Input
+            id="fullName"
             required
             value={formData.fullName}
             onChange={(event) =>
@@ -121,8 +176,9 @@ function JobPage() {
 
         <div>
           <div className="flex flex-col gap-y-4">
-            <Label>{job?.questions[0]}</Label>
+            <Label htmlFor="a1">{job?.questions[0]}</Label>
             <Textarea
+              id="a1"
               required
               value={formData.a1}
               onChange={(event) =>
@@ -134,8 +190,9 @@ function JobPage() {
 
         <div>
           <div className="flex flex-col gap-y-4">
-            <Label>{job?.questions[1]}</Label>
+            <Label htmlFor="a2">{job?.questions[1]}</Label>
             <Textarea
+              id="a2"
               required
               value={formData.a2}
               onChange={(event) =>
@@ -147,8 +204,9 @@ function JobPage() {
 
         <div>
           <div className="flex flex-col gap-y-4">
-            <Label>{job?.questions[2]}</Label>
+            <Label htmlFor="a3">{job?.questions[2]}</Label>
             <Textarea
+              id="a3"
               required
               value={formData.a3}
               onChange={(event) =>
@@ -157,6 +215,7 @@ function JobPage() {
             />
           </div>
         </div>
+
         <div className="flex gap-x-4 items-center">
           <Button type="submit" className="bg-card text-card-foreground w-fit">
             Submit
@@ -178,6 +237,7 @@ function JobPage() {
           </Button>
         </div>
       </form>
+      <ToastContainer />
     </div>
   );
 }

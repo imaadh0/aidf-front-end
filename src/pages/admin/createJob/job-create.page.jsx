@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createJob } from "@/lib/services/api/jobs";
 import { useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function AdminJobCreatePage() {
   const [formData, setFormData] = useState({
@@ -22,17 +24,57 @@ function AdminJobCreatePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    await createJob({
-      title: formData.title,
-      type: formData.type,
-      description: formData.description,
-      location: formData.location,
-      questions: [formData.q1, formData.q2, formData.q3],
-    });
+    try {
+
+      await createJob({
+        title: formData.title,
+        description: formData.description,
+        type: formData.type,
+        location: formData.location,
+        questions: [formData.q1, formData.q2, formData.q3],
+      });
+
+      toast.success("Job posting created successfully!", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+
+      setFormData({
+        title: "",
+        description: "",
+        type: "",
+        location: "",
+        q1: "",
+        q2: "",
+        q3: "",
+      });
+      
+    } catch (error) {
+
+      console.error("Error creating job:", error);
+      toast.error("Error creating job posting. Please try again.", {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      
+    }
+
+    
   };
 
   return (
     <div>
+       <ToastContainer />
       <div className="py-8">
         <h2>Create A Job Posting</h2>
       </div>
