@@ -1,9 +1,8 @@
-import Navigation from "@/components/shared/Navigation";
 import { Outlet } from "react-router-dom";
 
 function RootLayout() {
   return (
-    <main className="container">
+    <main className="container min-h-screen">
       <Outlet />
     </main>
   );
