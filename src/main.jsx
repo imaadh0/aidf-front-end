@@ -15,6 +15,7 @@ import AdminJobCreatePage from "./pages/admin/createJob/job-create.page";
 import AdminJobPage from "./pages/admin/job/admin-job.page";
 import AdminJobApplicationPage from "./pages/admin/jobApplication/admin-job-application.page";
 import { ClerkProvider } from "@clerk/clerk-react";
+import RouteError from "./components/shared/RouteError.jsx";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -25,6 +26,7 @@ if (!PUBLISHABLE_KEY) {
 const router = createBrowserRouter([
   {
     element: <RootLayout />,
+    errorElement: <RouteError />,
     children: [
       {
         element: <MainLayout />,

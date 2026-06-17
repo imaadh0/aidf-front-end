@@ -1,26 +1,25 @@
+import { API_BASE_URL } from "../../config.js";
+
 export const getJobs = async () => {
-  const res = await fetch(
-    "https://aidf-back-end-production-4ac8.up.railway.app/jobs",
-    {
-      method: "GET",
-    }
-  );
+  const res = await fetch(`${API_BASE_URL}/jobs`, {
+    method: "GET",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch jobs: ${res.status}`);
+  }
   const data = await res.json();
-  return data;
+  return Array.isArray(data) ? data : [];
 };
 
 export const getJobById = async (id) => {
   const token = await window.Clerk.session.getToken();
 
-  const res = await fetch(
-    `https://aidf-back-end-production-4ac8.up.railway.app/jobs/${id}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },      
-    }
-  );
+  const res = await fetch(`${API_BASE_URL}/jobs/${id}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   const data = await res.json();
   return data;
 };
@@ -37,7 +36,7 @@ export const createJob = async ({
   }
   const token = await window.Clerk.session.getToken();
 
-  await fetch("https://aidf-back-end-production-4ac8.up.railway.app/jobs", {
+  const response = await fetch(`${API_BASE_URL}/jobs`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -51,4 +50,8 @@ export const createJob = async ({
       questions,
     }),
   });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create job posting (${response.status})`);
+  }
 };
