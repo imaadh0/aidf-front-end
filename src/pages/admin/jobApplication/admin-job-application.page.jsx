@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generateJobApplicationFeedback, getJobApplicationById } from "@/lib/services/api/jobApplications";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, BarChart3, CheckCircle2, Lightbulb, MessageSquareText, RefreshCw, TrendingUp } from "lucide-react";
+import { ArrowLeft, BarChart3, CheckCircle2, Lightbulb, MessageSquareText, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -114,20 +114,11 @@ function AdminJobApplicationPage() {
       </div>
 
       <Card>
-        <CardHeader className="flex-row items-start justify-between gap-4">
+        <CardHeader>
           <div>
             <p className="text-sm font-semibold uppercase text-primary">Candidate Review</p>
             <CardTitle className="mt-2">{jobApplication?.fullName}</CardTitle>
             <p className="mt-2 text-sm">{jobApplication?.job?.title}</p>
-          </div>
-          <div className="flex flex-col items-end gap-3">
-            <Badge className={ratingClassName(feedback?.overallRating || jobApplication?.rating)}>
-              {feedback?.overallRating || jobApplication?.rating || "Not Rated"}
-            </Badge>
-            <Button variant="outline" size="sm" onClick={handleGenerateFeedback} disabled={isGenerating}>
-              <RefreshCw className={cn("h-4 w-4", { "animate-spin": isGenerating })} />
-              {feedback ? "Regenerate AI Feedback" : "Generate AI Feedback"}
-            </Button>
           </div>
         </CardHeader>
         {feedback && (
@@ -151,7 +142,7 @@ function AdminJobApplicationPage() {
       </Card>
 
       {feedback ? (
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <div className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -167,21 +158,6 @@ function AdminJobApplicationPage() {
               </ul>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <TrendingUp size={18} />
-                Improvements
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                {(feedback.improvements || []).map((improvement, index) => (
-                  <li className="rounded-md bg-muted p-3" key={index}>{improvement}</li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
         </div>
       ) : (
         <Card className="mt-6 border-dashed">
@@ -189,7 +165,7 @@ function AdminJobApplicationPage() {
             <div className="flex items-start gap-3">
             <Lightbulb className="mt-1 text-primary" size={18} />
             <p className="text-sm">
-                Detailed AI feedback is not available yet. Generate it now to get a score, summary, strengths, improvements, and per-answer notes.
+                Detailed AI feedback is not available yet. Generate it now to get a score, summary, strengths, and per-answer notes.
             </p>
             </div>
             <Button onClick={handleGenerateFeedback} disabled={isGenerating}>
